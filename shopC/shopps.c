@@ -43,8 +43,8 @@ struct Shop {
 // A customer structure is created with the product name and price
 struct Customer {
     //Pointer is added for the customers name so that there is no defined lenght
-    char *customername;
-    double budget;
+    char *Customername;
+    double Budget;
         // Products in the shopping list can only contain a maximum of ten items
     struct Productstock shoppinglist[10];
         // Keeps track of the increase and decrease the product stock
@@ -61,21 +61,8 @@ void printProduct(struct Product p)
 
 }
 
-void printCustomer(struct Customer c)
-{
-    // COMMENT REQUIRED
-    printf("PRODUCT NAME: %s \nPRODUCT PRICE: %.2f\n", c.customername, c.budget);
-    printf("------\n");
-    //Record productstock available
-    for (int i = 0; i < c.index; i++)
-    {
-        printProduct(c.shoppinglist[i].product);
-        //from customers name in customers shopping list get the prodcut name and the productstock (chaining of access)
-        printf("%s ORDERS %2.f OF ABOVE PRODUCT\n",c.customername,c.shoppinglist[i].quantity);
-    }
 
-}
-
+//Read in shops stock and cash float from a CSV file
 struct Shop createAndStockShop()
 {
     FILE * fp;
@@ -134,13 +121,15 @@ struct Shop createAndStockShop()
     return shop;
 }
 
+//Read in customers deatils and customers orders from a csv file
 struct Customer sellshopsstock()
 {   
-    struct Customer customer = {};
+    //struct Customer customer = {};
     FILE * fp;
     char * line = NULL;
     size_t len = 0;
     size_t read;
+    int i = 0;
 
     // Open file & read in detail
     fp = fopen("customerorder.csv", "r");
@@ -150,15 +139,33 @@ struct Customer sellshopsstock()
     //This gets the first line of the file
     getline(&line, &len, fp);
 
-    // Read in every line until the end of the file
-    while ((read = getline(&line, &len, fp)) != -1) 
-    {
-        printf("%s IS A LINE",line);}
-        // Gets the address on the product names
+    // Gets the address on the product names
         char *cn = strtok(line, ",");
 
         // Gets the address on the product prices
         char *b = strtok(NULL, ",");
+
+        // Malloc manually allocates a piece of memory to store a variable
+        char *Customername = malloc(sizeof(char)* 50);
+        
+        // This copys the string 
+        strcpy(Customername,cn);
+
+        // Converts prices to data type with two decimal places
+        double Budget = atof(b);
+
+        // This assignes the product within the product stuct the name and price variables read  filein from the
+       struct Customer cus = {Customername,Budget};
+
+       // Print out customer name and budget
+       printf("Customer name: %s Budget: %.2f\n",cus.Customername,cus.Budget);
+
+
+    // Read in every line until the end of the file
+    while ((read = getline(&line, &len, fp)) != -1) 
+    {
+       // printf("%s IS A LINE",line);}
+
 
         char *n = strtok(NULL, ",");
         
@@ -168,24 +175,13 @@ struct Customer sellshopsstock()
         // Convert quantity to data type integer 
         int quantity = atoi(q);
 
-        // Converts prices to data type with two decimal places
-        double Budget = atof(b);
-
-
-        // Malloc manually allocates a piece of memory to store a variable
-        char *Customername = malloc(sizeof(char)* 50);
-
-        // This copys the string 
-        strcpy(Customername,cn);
-        
         // Malloc manually allocates a piece of memory to store a variable
         char *name = malloc(sizeof(char)* 50);  
 
          // This copys the string 
         strcpy(name,n);
 
-        // This assignes the product within the product stuct the name and price variables read  filein from the
-       struct Customer cus = {Customername,Budget};
+
 
         // This assignes the stockitem within the productstock the product and quantity read in from the file
        struct Productstock saleitem = {name , quantity};
@@ -197,7 +193,8 @@ struct Customer sellshopsstock()
 
 
 
-       cus.shoppinglist[cus.index++] = shoppingitems;   
+       cus.shoppinglist[cus.index++] = shoppingitems; 
+    }  
 
    return cus;
 }
@@ -215,22 +212,24 @@ void printshop(struct Shop s)
         printProduct(s.stock[i].product);
         printf("The SHOP HAS %d of the above\n",s.stock[i].quantity);
     }
-};
+}
 
-void printcustomer(struct Customer c)
+void printCustomer(struct Customer cus)
 {
-
     // COMMENT REQUIRED
-    printf("The customers order is %s\n", c.customername);
-
-    // COMMENT REQUIRED
-    for (int i = 0; i < c.index; i++)
+    printf("Customer NAME: %s \n Budget: %.2f\n", cus.Customername, cus.Budget);
+    printf("------\n");
+    //Record productstock available
+    for (int i = 0; i < cus.index; i++)
     {
-        // COMMENT REQUIRED
-        printProduct(c.shoppinglist[i].product);
-        printf("The",c.shoppinglist[i].quantity);
+        printProduct(cus.shoppinglist[i].product);
+        //from customers name in customers shopping list get the prodcut name and the productstock (chaining of access)
+        printf("%s ORDERS %2.f OF ABOVE PRODUCT\n",cus.Customername,cus.shoppinglist[i].quantity);
     }
-};
+
+}
+
+
 
 //Enter method information here for function to call
 int main(void)
@@ -238,13 +237,11 @@ int main(void)
    
    // COMMENT REQUIRED
     struct Shop shop = createAndStockShop();
-
-    // COMMENT REQUIRED
+     // COMMENT REQUIRED
     printshop(shop);
     
-    sellshopsstock();
-    // struct Customer customer  = sellshopsstock();
-   
-//    printsale(customer);
-    return 0;
+    struct Customer cus  = sellshopsstock();
+
+    printCustomer(cus);
+
 }
